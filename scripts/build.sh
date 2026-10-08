@@ -28,7 +28,10 @@ printf '\n==> Compile Rust geometry into browser WebAssembly\n'
 wasm-pack build "$CORE_DIR/crates/pfx-vector-wasm" --release --target web --out-dir pkg
 printf '\n==> Compile the pinned TypeScript consumer adapter\n'
 npm install --prefix "$CORE_DIR/packages/pfx-vector-web" --no-audit --no-fund
-npm run build:integration --prefix "$CORE_DIR/packages/pfx-vector-web"
+(
+  cd "$CORE_DIR/packages/pfx-vector-web"
+  ./node_modules/.bin/tsc -p tsconfig.json --outDir dist
+)
 printf '\n==> Assemble independent static application\n'
 rm -rf "$ROOT/dist"
 mkdir -p "$ROOT/dist/engine"
