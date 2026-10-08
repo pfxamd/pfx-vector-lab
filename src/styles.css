@@ -20,5 +20,5 @@
   .operation-choice{height:69px}
   .range-head{margin-top:14px}
   input[type=range]{margin:15px 0 5px}
-  .engine-note{margin-top:13px;padding:9px}
+  .engine-note{display:none}
 }

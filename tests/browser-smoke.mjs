@@ -6,9 +6,12 @@ for (const [name, type] of Object.entries({ chromium, firefox, webkit })) {
   const page = await browser.newPage({viewport: {width: 1440, height: 900}, acceptDownloads:true});
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
+  const settle = () => page.evaluate(() => new Promise((resolve) =>
+    requestAnimationFrame(() => requestAnimationFrame(resolve))));
   try {
     await page.goto('http://127.0.0.1:8787/', {waitUntil:'networkidle'});
     await page.locator('#engineDot.ready').waitFor({timeout:45000});
+    await settle();
     assert.match(await page.locator('#engineStatus').innerText(), /RUST ENGINE ONLINE/);
     assert.notEqual((await page.locator('#pathLength').innerText()).trim(), '—');
 
@@ -23,21 +26,25 @@ for (const [name, type] of Object.entries({ chromium, firefox, webkit })) {
     await page.waitForTimeout(100);
     assert.notEqual(await page.locator('#sourceShape').getAttribute('d'), original);
     await page.locator('#undo').click();
+    await settle();
     assert.equal(await page.locator('#sourceShape').getAttribute('d'), original);
 
     await page.locator('[data-tab="combine"]').click();
+    await settle();
     const union = await page.locator('#resultShape').getAttribute('d');
     assert.ok(union?.length > 12, `${name}: union result is missing`);
     await page.locator('[data-operation="difference"]').click();
+    await settle();
     const subtraction = await page.locator('#resultShape').getAttribute('d');
     assert.ok(subtraction?.length > 12, `${name}: subtract result is missing`);
     assert.notEqual(union, subtraction);
 
     await page.locator('[data-tab="inspect"]').click();
     await page.locator('[data-inspection="points"]').click();
-    await page.waitForTimeout(100);
+    await settle();
     assert.equal(await page.locator('#sampleLayer circle').count(), 12);
     await page.locator('[data-inspection="offset"]').click();
+    await settle();
     assert.ok((await page.locator('#resultShape').getAttribute('d'))?.length > 12);
 
     await page.locator('#themeButton').click();
