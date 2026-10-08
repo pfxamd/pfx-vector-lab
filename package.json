@@ -1,0 +1,14 @@
+{
+  "name": "pfx-vector-lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Independent vector geometry workbench backed by PFx Vector Core v1.0.0",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "verify": "node scripts/verify.mjs",
+    "build": "bash scripts/build.sh",
+    "serve": "python3 -m http.server 8787 --directory dist"
+  },
+  "license": "Apache-2.0"
+}

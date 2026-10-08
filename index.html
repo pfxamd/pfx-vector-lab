@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#121513" />
+  <meta name="description" content="A live vector geometry workbench powered by PFx Vector Core and Rust WebAssembly." />
+  <title>PFx Vector Lab — Geometry workbench</title>
+  <link rel="stylesheet" href="./src/styles.css" />
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <header class="topbar">
+      <div class="identity">
+        <span class="identity-mark" aria-hidden="true"><svg viewBox="0 0 30 30"><path d="M5 23V7h11c9 0 9 13 0 13H5" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linejoin="round"/><circle cx="23" cy="23" r="3.5" fill="currentColor"/></svg></span>
+        <div class="identity-copy"><strong>PFx <span>Vector Lab</span></strong><small>GEOMETRY WORKBENCH <i>ALPHA 0.1</i></small></div>
+      </div>
+      <div class="top-center"><span class="live-indicator" id="engineDot"></span><span id="engineStatus">INITIALIZING ENGINE</span><span class="header-separator"></span><span class="release-pill">CORE v1.0.0</span></div>
+      <div class="header-actions">
+        <button class="icon-button" id="undo" title="Undo (Ctrl+Z)" aria-label="Undo" disabled><svg viewBox="0 0 24 24"><path d="m9 14-5-5 5-5M4 9h10a6 6 0 0 1 0 12"/></svg></button>
+        <button class="icon-button" id="redo" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled><svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5m5 5H10a6 6 0 0 0 0 12"/></svg></button>
+        <span class="header-separator"></span>
+        <button class="icon-button" id="themeButton" title="Toggle theme" aria-label="Toggle theme"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.4 1.4m11.34 11.34 1.4 1.4M2 12h2m16 0h2M4.93 19.07l1.4-1.4M17.67 6.33l1.4-1.4"/></svg></button>
+        <button id="exportButton" class="export-button"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 16v4h16v-4"/></svg><span>Export SVG</span></button>
+      </div>
+    </header>
+    <div class="workspace">
+      <nav class="tool-rail" aria-label="Workspace tools">
+        <div class="rail-group">
+          <button class="tool-button selected" data-tool="edit" title="Edit nodes" aria-label="Edit nodes"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M7 5h-4v4h4zm14 10h-4v4h4zM3 19l6-6m5-8 7 7"/></svg></button>
+          <button class="tool-button" data-tool="combine" title="Boolean operations" aria-label="Boolean operations"><svg viewBox="0 0 24 24"><circle cx="9" cy="10" r="6"/><circle cx="15" cy="14" r="6"/></svg></button>
+          <button class="tool-button" data-tool="inspect" title="Inspect geometry" aria-label="Inspect geometry"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5m-14-10h8m-4-4v8"/></svg></button>
+        </div>
+        <div class="rail-spacer"></div>
+        <div class="rail-group">
+          <button class="tool-button selected muted-selected" id="gridButton" title="Toggle grid (G)" aria-label="Toggle grid"><svg viewBox="0 0 24 24"><path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18m6-18v18"/></svg></button>
+          <button class="tool-button" id="fitButton" title="Fit view" aria-label="Fit view"><svg viewBox="0 0 24 24"><path d="M8 3H3v5m18 0V3h-5M3 16v5h5m8 0h5v-5"/></svg></button>
+          <button class="tool-button" id="helpButton" title="Keyboard shortcuts" aria-label="Keyboard shortcuts"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 4 2l-1.5 1.4V14m0 3v.1"/></svg></button>
+        </div>
+      </nav>
+      <main class="stage" aria-label="Vector canvas">
+        <div class="canvas-head"><div class="canvas-label"><span class="canvas-symbol">⌁</span><span>WORKSPACE</span><span class="canvas-divider">/</span><strong id="workspaceMode">NODE EDITOR</strong></div><div class="canvas-head-right"><span class="kbd-hint">DRAG TO EDIT</span><span class="dot-sep">·</span><span id="zoomLabel">100%</span></div></div>
+        <div id="canvasArea" class="canvas-area">
+          <div class="floating-legend"><span class="legend-mark primary"></span><span>PATH A</span><span class="legend-mark secondary"></span><span>PATH B</span><span class="legend-line"></span><span id="resultLegend">LIVE GEOMETRY</span></div>
+          <svg id="stageSvg" viewBox="0 0 840 560" xmlns="http://www.w3.org/2000/svg" aria-label="Interactive vector path editor">
+            <defs>
+              <pattern id="microGrid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" class="grid-small" fill="none"/></pattern>
+              <pattern id="majorGrid" width="100" height="100" patternUnits="userSpaceOnUse"><rect width="100" height="100" fill="url(#microGrid)"/><path d="M100 0H0V100" class="grid-major" fill="none"/></pattern>
+              <filter id="shapeShadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="16" stdDeviation="22" flood-color="#000" flood-opacity=".17"/></filter>
+            </defs>
+            <rect id="gridSurface" x="-1500" y="-1500" width="4000" height="4000" fill="url(#majorGrid)"/>
+            <g id="canvasContent">
+              <path id="secondaryShape" class="secondary-shape" d=""/>
+              <path id="sourceShape" class="source-shape" d=""/>
+              <path id="resultShape" class="result-shape" d=""/>
+              <g id="sampleLayer" class="sample-layer"></g>
+              <g id="controlLayer"></g>
+            </g>
+          </svg>
+          <div class="canvas-foot"><span class="coordinate-symbol">+</span><span id="pointerCoordinates">X — &nbsp; Y —</span></div>
+          <div class="canvas-zoom"><button id="zoomOut" title="Zoom out" aria-label="Zoom out">−</button><button id="zoomReset" title="Reset zoom">100%</button><button id="zoomIn" title="Zoom in" aria-label="Zoom in">+</button></div>
+          <div class="toast" id="toast" role="status" aria-live="polite"></div>
+        </div>
+      </main>
+      <aside class="inspector" aria-label="Geometry inspector">
+        <div class="inspector-title"><div><span class="section-eyebrow">CONTROL PANEL</span><h1>Geometry <em>inspector.</em></h1></div><span class="inspector-icon">↗</span></div>
+        <div class="tabs" role="tablist" aria-label="Inspector views"><button class="tab active" data-tab="edit" role="tab" aria-selected="true">Edit</button><button class="tab" data-tab="combine" role="tab" aria-selected="false">Combine</button><button class="tab" data-tab="inspect" role="tab" aria-selected="false">Inspect</button></div>
+        <section class="tab-panel" id="panel-edit">
+          <div class="section-heading"><span>01 / SHAPE</span><span class="tiny-dot"></span></div>
+          <div class="section-description">Choose a base contour, then move its anchors and Bézier handles directly on the canvas.</div>
+          <div class="preset-list"><button class="preset-choice active" data-preset="contour"><span class="preset-glyph glyph-contour"></span><span>Contour</span><span class="preset-arrow">↗</span></button><button class="preset-choice" data-preset="bloom"><span class="preset-glyph glyph-bloom"></span><span>Bloom</span><span class="preset-arrow">↗</span></button><button class="preset-choice" data-preset="ribbon"><span class="preset-glyph glyph-ribbon"></span><span>Ribbon</span><span class="preset-arrow">↗</span></button></div>
+          <div class="thin-rule"></div>
+          <div class="section-heading"><span>02 / CONTROL POINT</span><span id="anchorIndexLabel">NODE 01</span></div>
+          <div class="field-label">Selected anchor <span class="field-hint">Drag any node to reposition</span></div>
+          <div class="number-fields"><label>X POSITION<div class="numeric-wrap"><input id="anchorX" type="number" step="1" value="218"/><span>PX</span></div></label><label>Y POSITION<div class="numeric-wrap"><input id="anchorY" type="number" step="1" value="240"/><span>PX</span></div></label></div>
+          <label class="switch-row"><span><strong>Show Bézier handles</strong><small>Display tangent control points</small></span><input type="checkbox" id="handleToggle" checked/><span class="switch-track"></span></label>
+          <button id="resetButton" class="subtle-button"><svg viewBox="0 0 24 24"><path d="M3 11a9 9 0 1 1 2.5 6M3 4v7h7"/></svg> Reset path</button>
+        </section>
+        <section class="tab-panel hidden" id="panel-combine">
+          <div class="section-heading"><span>01 / BOOLEAN OPERATIONS</span><span class="tiny-dot"></span></div>
+          <div class="section-description">Combine both contours using the actual Rust geometry engine.</div>
+          <div class="operation-grid"><button class="operation-choice active" data-operation="union"><span class="op-icon">∪</span><strong>Union</strong></button><button class="operation-choice" data-operation="intersection"><span class="op-icon">∩</span><strong>Intersect</strong></button><button class="operation-choice" data-operation="difference"><span class="op-icon">−</span><strong>Subtract</strong></button><button class="operation-choice" data-operation="xor"><span class="op-icon">⊕</span><strong>XOR</strong></button></div>
+          <div class="thin-rule"></div>
+          <div class="section-heading"><span>02 / SECONDARY SHAPE</span><span>PATH B</span></div>
+          <div class="range-head"><label for="secondaryX">Horizontal offset</label><output id="secondaryXValue">0 px</output></div><input type="range" id="secondaryX" min="-180" max="180" step="1" value="0"/>
+          <div class="range-head"><label for="secondaryY">Vertical offset</label><output id="secondaryYValue">0 px</output></div><input type="range" id="secondaryY" min="-180" max="180" step="1" value="0"/>
+          <label class="switch-row"><span><strong>Show source contours</strong><small>Overlay A and B for comparison</small></span><input type="checkbox" id="sourceToggle" checked/><span class="switch-track"></span></label>
+          <div class="engine-note"><span class="engine-note-icon">i</span><span>All operations run inside WebAssembly. No browser geometry approximations.</span></div>
+        </section>
+        <section class="tab-panel hidden" id="panel-inspect">
+          <div class="section-heading"><span>01 / PATH ANALYSIS</span><span class="tiny-dot"></span></div>
+          <div class="section-description">Computed from the Rust kernel, not from SVG rendering APIs.</div>
+          <div class="inspection-action"><button class="inspect-chip active" data-inspection="points">Samples</button><button class="inspect-chip" data-inspection="intersections">Intersections</button><button class="inspect-chip" data-inspection="offset">Offset</button></div>
+          <div class="range-head"><label for="sampleCount">Sample count</label><output id="sampleCountValue">12</output></div><input type="range" id="sampleCount" min="4" max="40" step="1" value="12"/>
+          <div class="range-head"><label for="offsetValue">Offset distance</label><output id="offsetValueLabel">18 px</output></div><input type="range" id="offsetValue" min="-50" max="70" step="1" value="18"/>
+          <div class="thin-rule"></div>
+          <div class="section-heading"><span>02 / SVG SOURCE</span><span class="tiny-dot"></span></div>
+          <textarea id="pathSource" class="source-editor" spellcheck="false" aria-label="SVG path data"></textarea>
+          <div class="source-actions"><button id="applySource">Apply path</button><button id="copySource">Copy path</button><button id="importButton">Import SVG</button></div>
+          <input id="fileInput" type="file" accept=".svg,.txt,image/svg+xml,text/plain" hidden/>
+        </section>
+        <div class="inspector-bottom"><div class="section-heading"><span>LIVE TELEMETRY</span><span class="measurement-badge" id="measurementStatus">WAITING</span></div><div class="metrics"><div><span>PATH LENGTH</span><strong id="pathLength">—</strong></div><div><span>BOUNDS</span><strong id="pathBounds">—</strong></div><div><span>SEGMENTS</span><strong id="segmentCount">04</strong></div><div><span>RENDERER</span><strong>SVG + WASM</strong></div></div><div class="source-footnote">NO REMOTE PROCESSING <span>·</span> CLIENT-SIDE GEOMETRY</div></div>
+      </aside>
+    </div>
+    <footer class="statusbar"><div><span class="status-mark"></span><span>PFx VECTOR CORE</span><span class="status-separator">/</span><span id="footerState">CONNECTING TO RUST</span></div><div><span id="activeObject">PATH A · 4 NODES</span><span class="status-separator">/</span><span>F64 PRECISION</span><span class="status-separator">/</span><span>LOCAL COMPUTE</span></div></footer>
+  </div>
+  <dialog id="helpDialog" class="help-dialog"><div class="help-head"><h2>Keyboard shortcuts</h2><button id="closeHelp" class="icon-button" aria-label="Close shortcuts">×</button></div><div class="help-rows"><div><span>Edit / Combine / Inspect</span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd></div><div><span>Undo / Redo</span><kbd>Ctrl Z</kbd><kbd>Ctrl Shift Z</kbd></div><div><span>Toggle grid</span><kbd>G</kbd></div><div><span>Reset zoom</span><kbd>0</kbd></div><div><span>Pan canvas</span><kbd>Alt + Drag</kbd></div><div><span>Zoom</span><kbd>Mouse wheel</kbd></div></div></dialog>
+  <script type="module" src="./src/app.mjs"></script>
+</body>
+</html>
