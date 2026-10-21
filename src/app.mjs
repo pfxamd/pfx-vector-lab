@@ -1,3 +1,19 @@
+/**
+ * ┌──────────────────────────────────────────────┐
+ * │                                              │
+ * │  PFxamd                                      │
+ * │  Ahmed                                       │
+ * │                                              │
+ * └──────────────────────────────────────────────┘
+ *
+ * @project     PFx Vector Lab
+ * @author      Ahmed
+ * @brand       PFxamd
+ * @website     https://www.pfxamd.com
+ * @repository  https://github.com/pfxamd/pfx-vector-lab
+ * @license     Apache-2.0
+ */
+
 import {
   PRESETS, SECONDARY_PATH, clonePreset, pathFromAnchors,
   translateAnchor, svgDocument,
