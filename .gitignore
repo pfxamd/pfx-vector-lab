@@ -4,3 +4,5 @@
 /core/
 *.log
 .DS_Store
+
+/.pfx-release-tools/
