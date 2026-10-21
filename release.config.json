@@ -1,0 +1,23 @@
+{
+  "product": "PFx Vector Lab",
+  "channel": "Alpha",
+  "baseline": "df0decf6e354ed49507c2fa15d1582b837cc9564",
+  "baseVersion": "0.1.0",
+  "sourcePaths": [
+    "src",
+    "app",
+    "apps",
+    "public",
+    "assets",
+    "index.html",
+    "diagnostics",
+    "scripts",
+    "release.config.json",
+    "vite.config.ts",
+    "vite.config.js",
+    "package.json",
+    "package-lock.json",
+    "pnpm-lock.yaml",
+    ".github/workflows"
+  ]
+}

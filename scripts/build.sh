@@ -40,7 +40,9 @@ cp -R "$ROOT/src" "$ROOT/dist/src"
 cp "$CORE_DIR/crates/pfx-vector-wasm/pkg/pfx_vector_wasm.js" "$ROOT/dist/engine/"
 cp "$CORE_DIR/crates/pfx-vector-wasm/pkg/pfx_vector_wasm_bg.wasm" "$ROOT/dist/engine/"
 cp "$CORE_DIR/packages/pfx-vector-web/dist/index.js" "$ROOT/dist/engine/vector-core-web.js"
+APP_VERSION="$(node "$ROOT/scripts/pfx-release.mjs" --version)"
+node "$ROOT/scripts/pfx-release.mjs" dist
 cat > "$ROOT/dist/build-info.json" <<JSON
-{"project":"pfx-vector-lab","version":"0.1.0","coreTag":"${CORE_TAG}","coreCommit":"${CORE_SHA}"}
+{"project":"pfx-vector-lab","version":"${APP_VERSION}","coreTag":"${CORE_TAG}","coreCommit":"${CORE_SHA}"}
 JSON
 printf '\nBuild complete: %s\n' "$ROOT/dist"
